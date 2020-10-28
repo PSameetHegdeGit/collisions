@@ -127,16 +127,61 @@ public class PrismManager : MonoBehaviour
         var prismA = collision.a;
         var prismB = collision.b;
 
-        
+
+        #region Minkowski Difference
+
+        var minkowskiDifference = new List<Vector3>();
+
+        foreach (var pointA in prismA.points)
+            foreach (var pointB in prismB.points)
+                minkowskiDifference.Add(pointA - pointB);
+
+
+        #endregion
+
+
+        #region GJK Algorithm
+
+        // Determine if Minkowski difference has at least 3 points and is 3D in shape
+        if (minkowskiDifference.Count > 3)
+        {
+            var simplex = new List<Vector3>();
+
+            simplex.Add(minkowskiDifference[0]);
+
+            var supportAxis = Vector3.zero - simplex[0];
+
+            #region Support Function
+            var supportPoint = minkowskiDifference.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
+            simplex.Add(supportPoint);
+
+            #endregion
+
+            #region Find Closest Point on Simplex to Origin
+
+            #endregion
+        }
+
+
+        simplex.Add()
+
+
+        #endregion
+
+
         collision.penetrationDepthVectorAB = Vector3.zero;
 
-        return true;
+        return false;
     }
-    
+
     #endregion
 
+
+
+
     #region Private Functions
-    
+
+
     private void ResolveCollision(PrismCollision collision)
     {
         var prismObjA = collision.a.prismObject;
