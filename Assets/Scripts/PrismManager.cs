@@ -123,17 +123,17 @@ public class PrismManager : MonoBehaviour
 		//sweep along x, then z axis. we don't look at y
 
 		//part 1: sweep along x axis
-		
 		//1. retrieve all prisms' Vector3[] min and max points. O(n)
 		for (int i = 0; i < prisms.Count; i++) {
 			//1. find the min and the max x values of each prism. you can iterate over all values. O(n)
-			//2. create two tuples for each: (prismID, min), (prism, max), add tuples to a master list, call it importantPoints
-		}		
+			//2. create two tuples for each: (prismID, min, "min"), (prism, max, "max"), add tuples to a master list, call it importantPoints
+		}
+				
 		//3. sort importantPoints e.g. merge sort on the second value of the tuples (O(nlogn))
 		//4. create another list to store sweeped data, call it sweepedPoints (O(1))
 		//5. iterate (sweep) over importantPoints, adding each value to sweepedPoints
-			Each time you add, check to see if the prismID is already in a tuple in sweepedPoints. use binary search? (O(log(n)))
-				//case 0: new tuple's prismID not already in sweepedPoints. This means you need to check for Collision 
+			Each time you add, check the third value of tuple:
+				//case 0: value is "min" -> prism not already in sweepedPoints. Need to check for Collision 
 					btwn. that new tuple's prism & the currently prisms in sweepedPoints. after checking, add to sweepedPoints. 
 					for(int i = 0; i < sweepedPoints.Count; i++){
 						var checkPrisms = new PrismCollision();
@@ -142,7 +142,8 @@ public class PrismManager : MonoBehaviour
 						yield return checkPrisms;
 					}
 					add tuple to sweepedpoints.
-				//case 1: new tuple's prismID in sweepedPoints. Ths means you finished crossing the prism. remove it from sweepedPoints. do not add new tuple to sweepedPoints.
+				//case 1: value is "max" -> prism in sweepedPoints. Ths means you finished crossing the prism.
+				 remove it from sweepedPoints. do not add new tuple to sweepedPoints.
 
 
 		//part 2: sweep along z axis
