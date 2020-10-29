@@ -1,7 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Object = System.Object;
+using Random = UnityEngine.Random;
+
 
 public class PrismManager : MonoBehaviour
 {
@@ -107,11 +111,15 @@ public class PrismManager : MonoBehaviour
 
     #region Incomplete Functions
 
+
+
     private IEnumerable<PrismCollision> PotentialCollisions()
     {
 
-        for (int i = 0; i < prisms.Count; i++) {
-            for (int j = i + 1; j < prisms.Count; j++) {
+        for (int i = 0; i < prisms.Count; i++)
+        {
+            for (int j = i + 1; j < prisms.Count; j++)
+            {
                 var checkPrisms = new PrismCollision();
                 checkPrisms.a = prisms[i];
                 checkPrisms.b = prisms[j];
@@ -120,39 +128,65 @@ public class PrismManager : MonoBehaviour
             }
         }
 
-		//sweep along x, then z axis. we don't look at y
 
-		//part 1: sweep along x axis
-		//1. retrieve all prisms' Vector3[] min and max points. O(n)
-		for (int i = 0; i < prisms.Count; i++) {
-			//1. find the min and the max x values of each prism. you can iterate over all values. O(n)
-			//2. create two tuples for each: (prismID, min, "min"), (prism, max, "max"), add tuples to a master list, call it importantPoints
-		}
-				
-		//3. sort importantPoints e.g. merge sort on the second value of the tuples (O(nlogn))
-		//4. create another list to store sweeped data, call it sweepedPoints (O(1))
-		//5. iterate (sweep) over importantPoints, adding each value to sweepedPoints
-			Each time you add, check the third value of tuple:
-				//case 0: value is "min" -> prism not already in sweepedPoints. Need to check for Collision 
-					btwn. that new tuple's prism & the currently prisms in sweepedPoints. after checking, add to sweepedPoints. 
-					for(int i = 0; i < sweepedPoints.Count; i++){
-						var checkPrisms = new PrismCollision();
-						checkPrisms.a = the prism being added;
-						checkPrisms.b = the prism corresponding to the tuple at index i of sweepedPoints
-						yield return checkPrisms;
-					}
-					add tuple to sweepedpoints.
-				//case 1: value is "max" -> prism in sweepedPoints. Ths means you finished crossing the prism.
-				 remove it from sweepedPoints. do not add new tuple to sweepedPoints.
+        //var masterlist = new List<Tuple<Prism, float, string>>();
+
+        //foreach (Prism shape in prisms)
+        //{
+        //    var minimum = shape.points.Aggregate<Vector3>((a,b)=> a.x < b.x? a: b).x;
+        //    var maximum = shape.points.Aggregate<Vector3>((a, b) => a.x > b.x ? a : b).z;
+
+        //    var tupleMin = Tuple.Create<Prism, float, string>(shape, minimum, "min");
+        //    var tupleMax = Tuple.Create<Prism, float, string>(shape, maximum, "max");
+
+        //    masterlist.Add(tupleMin);
+        //    masterlist.Add(tupleMax);
+
+        //    //Sorting masterlist
+        //    masterlist.OrderBy(term => term.Item2);
+
+        //}
+
+        //var sweeplist = new List<Tuple<Prism, float, string>>();
 
 
-		//part 2: sweep along z axis
-		//do same thing as x-axis sweep but for z valuesa
+        //sweeplist.Add(masterlist[0]);
+
+
+        //for (int i = 1; i < masterlist.Count; i++)
+        //{
+        //    var term = masterlist[i];
+        //    if (term.Item3.Equals("max"))
+        //    {
+        //        Object itemToRemove = null;
+        //        foreach(var sweeplistterm in sweeplist)
+        //        {
+        //            if (sweeplistterm.Item1 == term.Item1)
+        //            {
+        //                itemToRemove = sweeplistterm;
+        //            }
+        //        }
+        //        sweeplist.Remove((Tuple<Prism, float, string>)itemToRemove);
+        //    }
+        //    else if (term.Item3.Equals("min"))
+        //    {
+        //        print(sweeplist.Count);
+        //        foreach(var sweeplistterm in sweeplist)
+        //        {
+        //            var checkPrisms = new PrismCollision();
+        //            checkPrisms.a = term.Item1;
+        //            checkPrisms.b = sweeplistterm.Item1;
+        //            print("minimum");
+        //            yield return checkPrisms;
+        //        }
+        //        sweeplist.Add(term);
+        //    }
+        //}
+
+
 
         yield break;
     }
-
-
     #region Check Collisions Helper Functions
 
     private Vector3 tripleCrossProduct(Vector3 a, Vector3 b, Vector3 c)
@@ -236,6 +270,7 @@ public class PrismManager : MonoBehaviour
 
     private bool CheckCollision(PrismCollision collision)
     {
+        print("in collisions");
         var prismA = collision.a;
         var prismB = collision.b;
 
@@ -245,11 +280,11 @@ public class PrismManager : MonoBehaviour
         var minkowskiDifference = calculateMinkowskiDifference(prismA, prismB);
 
         //Run GJK Algorithm
-        var isCollision = GJK(minkowskiDifference);
+        //var isCollision = GJK(minkowskiDifference);
 
         collision.penetrationDepthVectorAB = Vector3.zero;
 
-        return false;
+        return true;
     }
 
     #endregion
@@ -353,6 +388,9 @@ public class PrismManager : MonoBehaviour
             Item2 = v;
         }
     }
+
+    
+
 
     #endregion
 }
