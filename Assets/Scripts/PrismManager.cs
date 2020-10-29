@@ -122,14 +122,19 @@ public class PrismManager : MonoBehaviour
         yield break;
     }
 
-    private bool CheckCollision(PrismCollision collision)
+
+    #region Check Collisions Helper Functions
+
+    private Vector3 tripleCrossProduct(Vector3 a, Vector3 b, Vector3 c)
     {
-        var prismA = collision.a;
-        var prismB = collision.b;
+        var axb = Vector3.Cross(a, b);
+        var cxprior = Vector3.Cross(c, axb);
 
+        return cxprior;
+    }
 
-        #region Minkowski Difference
-
+    private List<Vector3> calculateMinkowskiDifference(Prism prismA, Prism prismB)
+    {
         var minkowskiDifference = new List<Vector3>();
 
         foreach (var pointA in prismA.points)
@@ -137,36 +142,80 @@ public class PrismManager : MonoBehaviour
                 minkowskiDifference.Add(pointA - pointB);
 
 
-        #endregion
+        return minkowskiDifference;
+    }
 
 
-        #region GJK Algorithm
+    private Vector3 supportFunction(List<Vector3> minkowskiDifference, Vector3 pointToCalculateSupportAxis)
+    {
+        var supportAxis = -1 * pointToCalculateSupportAxis;
+ 
+        return minkowskiDifference.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
+ 
+    }
 
-        // Determine if Minkowski difference has at least 3 points and is 3D in shape
-        if (minkowskiDifference.Count > 3)
+    private bool GJK(List<Vector3> minkowskiDifference)
+    {
+        var simplex = new List<Vector3>();
+
+        //Create simplex triangle by first picking an arbitrary value, picking the second point using the support fxn, and picking the third point by using the support fxn w/ the orthogonal vector of simplex
+        var firstPoint = minkowskiDifference[0];
+        var secondPoint = supportFunction(minkowskiDifference, firstPoint);
+
+        var firstPointToSecondPoint = firstPoint - secondPoint;
+        var firstPointToOrigin = -1 * firstPoint;
+
+        var thirdPoint = supportFunction(minkowskiDifference, tripleCrossProduct(firstPointToSecondPoint, firstPointToOrigin, firstPointToSecondPoint));
+
+        simplex.Add(firstPoint);
+        simplex.Add(secondPoint);
+        simplex.Add(thirdPoint);
+
+
+        //Determine if simplex contains origin
+        var v1 = firstPoint - thirdPoint;
+        var v2 = secondPoint - thirdPoint;
+        var toOrigin = thirdPoint * -1;
+
+        var v1Perp = tripleCrossProduct(v2, v1, v1);
+        var v2Perp = tripleCrossProduct(v1, v2, v2);
+
+        if(Vector3.Dot(v1Perp, toOrigin) > 0)
         {
-            var simplex = new List<Vector3>();
-
-            simplex.Add(minkowskiDifference[0]);
-
-            var supportAxis = Vector3.zero - simplex[0];
-
-            #region Support Function
-            var supportPoint = minkowskiDifference.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
-            simplex.Add(supportPoint);
-
-            #endregion
-
-            #region Find Closest Point on Simplex to Origin
-
-            #endregion
+            simplex.Remove(firstPoint);
+        }
+        else if (Vector3.Dot(v2Perp, toOrigin) > 0)
+        {
+            simplex.Remove(secondPoint);
+        }
+        else
+        {
+            return true;
         }
 
+        return false;
+            
+        
+    }
+
+
+    #endregion
 
 
 
-        #endregion
 
+    private bool CheckCollision(PrismCollision collision)
+    {
+        var prismA = collision.a;
+        var prismB = collision.b;
+
+
+        // Calculate Minkowski Difference
+
+        var minkowskiDifference = calculateMinkowskiDifference(prismA, prismB);
+
+        //Run GJK Algorithm
+        var isCollision = GJK(minkowskiDifference);
 
         collision.penetrationDepthVectorAB = Vector3.zero;
 
