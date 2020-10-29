@@ -163,7 +163,6 @@ public class PrismManager : MonoBehaviour
         }
 
 
-        simplex.Add()
 
 
         #endregion
