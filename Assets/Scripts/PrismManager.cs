@@ -119,21 +119,30 @@ public class PrismManager : MonoBehaviour
                 yield return checkPrisms;
             }
         }
-		for each prism
-
-                yield return checkPrisms;
-		}
 
 		//sweep along x, then z axis. we don't look at y
 
 		//part 1: sweep along x axis
-		//retrieve all prisms' Vector3[] min and max points.
-		//Look at all prisms' Vector3[] points. Find the smallest one (by x-val) and add it to the array. Note which prism it comes from.
-		// Find the next smallest point (by x-val). If it's from a different prism, you need to check that prism w/ the prisms
-			that all the points in the array belong to for overlap.
-		//Keep finding next smallest point, if it's from a prism in the array then purge it.
-		//for each prism, find the min value (start) and the max value (end)
-		//if a min value of a prism is added to the array before the max value of another prism is added, you need to CheckCollision
+		
+		//1. retrieve all prisms' Vector3[] min and max points. O(n)
+		for (int i = 0; i < prisms.Count; i++) {
+			//1. find the min and the max x values of each prism. you can iterate over all values. O(n)
+			//2. create two tuples for each: (prismID, min), (prism, max), add tuples to a master list, call it importantPoints
+		}		
+		//3. sort importantPoints e.g. merge sort on the second value of the tuples (O(nlogn))
+		//4. create another list to store sweeped data, call it sweepedPoints (O(1))
+		//5. iterate (sweep) over importantPoints, adding each value to sweepedPoints
+			Each time you add, check to see if the prismID is already in a tuple in sweepedPoints. use binary search? (O(log(n)))
+				//case 0: new tuple's prismID not already in sweepedPoints. This means you need to check for Collision 
+					btwn. that new tuple's prism & the currently prisms in sweepedPoints. after checking, add to sweepedPoints. 
+					for(int i = 0; i < sweepedPoints.Count; i++){
+						var checkPrisms = new PrismCollision();
+						checkPrisms.a = the prism being added;
+						checkPrisms.b = the prism corresponding to the tuple at index i of sweepedPoints
+						yield return checkPrisms;
+					}
+					add tuple to sweepedpoints.
+				//case 1: new tuple's prismID in sweepedPoints. Ths means you finished crossing the prism. remove it from sweepedPoints. do not add new tuple to sweepedPoints.
 
 
 		//part 2: sweep along z axis
