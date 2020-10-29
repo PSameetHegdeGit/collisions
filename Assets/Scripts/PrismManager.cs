@@ -109,6 +109,7 @@ public class PrismManager : MonoBehaviour
 
     private IEnumerable<PrismCollision> PotentialCollisions()
     {
+
         for (int i = 0; i < prisms.Count; i++) {
             for (int j = i + 1; j < prisms.Count; j++) {
                 var checkPrisms = new PrismCollision();
@@ -118,6 +119,25 @@ public class PrismManager : MonoBehaviour
                 yield return checkPrisms;
             }
         }
+		for each prism
+
+                yield return checkPrisms;
+		}
+
+		//sweep along x, then z axis. we don't look at y
+
+		//part 1: sweep along x axis
+		//retrieve all prisms' Vector3[] min and max points.
+		//Look at all prisms' Vector3[] points. Find the smallest one (by x-val) and add it to the array. Note which prism it comes from.
+		// Find the next smallest point (by x-val). If it's from a different prism, you need to check that prism w/ the prisms
+			that all the points in the array belong to for overlap.
+		//Keep finding next smallest point, if it's from a prism in the array then purge it.
+		//for each prism, find the min value (start) and the max value (end)
+		//if a min value of a prism is added to the array before the max value of another prism is added, you need to CheckCollision
+
+
+		//part 2: sweep along z axis
+		//do same thing as x-axis sweep but for z valuesa
 
         yield break;
     }
