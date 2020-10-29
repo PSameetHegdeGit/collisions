@@ -116,72 +116,119 @@ public class PrismManager : MonoBehaviour
     private IEnumerable<PrismCollision> PotentialCollisions()
     {
 
-        for (int i = 0; i < prisms.Count; i++)
-        {
-            for (int j = i + 1; j < prisms.Count; j++)
-            {
-                var checkPrisms = new PrismCollision();
-                checkPrisms.a = prisms[i];
-                checkPrisms.b = prisms[j];
+     
 
-                yield return checkPrisms;
+        var masterlist = new List<Tuple<Prism, float, string>>();
+
+        #region Check on x axis
+        foreach (Prism shape in prisms)
+        {
+            var minimum = shape.points.Aggregate<Vector3>((a,b)=> a.x < b.x? a: b).x;
+            var maximum = shape.points.Aggregate<Vector3>((a, b)=> a.x > b.x ? a: b).x;
+
+            var tupleMin = Tuple.Create<Prism, float, string>(shape, minimum, "min");
+            var tupleMax = Tuple.Create<Prism, float, string>(shape, maximum, "max");
+
+            masterlist.Add(tupleMin);
+            masterlist.Add(tupleMax);
+
+            //Sorting masterlist
+
+        }
+        List<Tuple<Prism, float, string>> orderedlist = masterlist.OrderBy(term => term.Item2).ToList();
+
+        var sweeplist = new List<Tuple<Prism, float, string>>();
+
+    
+        sweeplist.Add(orderedlist[0]);
+
+
+        for (int i = 1; i < orderedlist.Count; i++)
+        {
+            var term = orderedlist[i];
+            if (term.Item3.Equals("max"))
+            {
+                Object itemToRemove = null;
+                foreach(var sweeplistterm in sweeplist)
+                {
+                    if (sweeplistterm.Item1 == term.Item1)
+                    {
+                        itemToRemove = sweeplistterm;
+                    }
+                }
+                sweeplist.Remove((Tuple<Prism, float, string>)itemToRemove);
+            }
+            else if (term.Item3.Equals("min"))
+            {
+                print(sweeplist.Count);
+                foreach(var sweeplistterm in sweeplist)
+                {
+                    var checkPrisms = new PrismCollision();
+                    checkPrisms.a = term.Item1;
+                    checkPrisms.b = sweeplistterm.Item1;
+                    print("minimum");
+                    yield return checkPrisms;
+                }
+                sweeplist.Add(term);
             }
         }
 
+        //Check on Z axis
+        masterlist.Clear();
+        #endregion
 
-        //var masterlist = new List<Tuple<Prism, float, string>>();
+        #region Check on z axis
+        foreach (Prism shape in prisms)
+        {
+            var minimum = shape.points.Aggregate<Vector3>((a, b) => a.z < b.z ? a : b).z;
+            var maximum = shape.points.Aggregate<Vector3>((a, b) => a.z > b.z ? a : b).z;
 
-        //foreach (Prism shape in prisms)
-        //{
-        //    var minimum = shape.points.Aggregate<Vector3>((a,b)=> a.x < b.x? a: b).x;
-        //    var maximum = shape.points.Aggregate<Vector3>((a, b) => a.x > b.x ? a : b).z;
+            var tupleMin = Tuple.Create<Prism, float, string>(shape, minimum, "min");
+            var tupleMax = Tuple.Create<Prism, float, string>(shape, maximum, "max");
 
-        //    var tupleMin = Tuple.Create<Prism, float, string>(shape, minimum, "min");
-        //    var tupleMax = Tuple.Create<Prism, float, string>(shape, maximum, "max");
-
-        //    masterlist.Add(tupleMin);
-        //    masterlist.Add(tupleMax);
-
-        //    //Sorting masterlist
-        //    masterlist.OrderBy(term => term.Item2);
-
-        //}
-
-        //var sweeplist = new List<Tuple<Prism, float, string>>();
+            masterlist.Add(tupleMin);
+            masterlist.Add(tupleMax);
 
 
-        //sweeplist.Add(masterlist[0]);
+        }
+        orderedlist = masterlist.OrderBy(term => term.Item2).ToList();
+
+        sweeplist = new List<Tuple<Prism, float, string>>();
 
 
-        //for (int i = 1; i < masterlist.Count; i++)
-        //{
-        //    var term = masterlist[i];
-        //    if (term.Item3.Equals("max"))
-        //    {
-        //        Object itemToRemove = null;
-        //        foreach(var sweeplistterm in sweeplist)
-        //        {
-        //            if (sweeplistterm.Item1 == term.Item1)
-        //            {
-        //                itemToRemove = sweeplistterm;
-        //            }
-        //        }
-        //        sweeplist.Remove((Tuple<Prism, float, string>)itemToRemove);
-        //    }
-        //    else if (term.Item3.Equals("min"))
-        //    {
-        //        print(sweeplist.Count);
-        //        foreach(var sweeplistterm in sweeplist)
-        //        {
-        //            var checkPrisms = new PrismCollision();
-        //            checkPrisms.a = term.Item1;
-        //            checkPrisms.b = sweeplistterm.Item1;
-        //            print("minimum");
-        //            yield return checkPrisms;
-        //        }
-        //        sweeplist.Add(term);
-        //    }
-        //}
+        sweeplist.Add(orderedlist[0]);
+
+
+        for (int i = 1; i < orderedlist.Count; i++)
+        {
+            var term = orderedlist[i];
+            if (term.Item3.Equals("max"))
+            {
+                Object itemToRemove = null;
+                foreach (var sweeplistterm in sweeplist)
+                {
+                    if (sweeplistterm.Item1 == term.Item1)
+                    {
+                        itemToRemove = sweeplistterm;
+                    }
+                }
+                sweeplist.Remove((Tuple<Prism, float, string>)itemToRemove);
+            }
+            else if (term.Item3.Equals("min"))
+            {
+                print(sweeplist.Count);
+                foreach (var sweeplistterm in sweeplist)
+                {
+                    var checkPrisms = new PrismCollision();
+                    checkPrisms.a = term.Item1;
+                    checkPrisms.b = sweeplistterm.Item1;
+                    print("minimum");
+                    yield return checkPrisms;
+                }
+                sweeplist.Add(term);
+            }
+        }
+        #endregion
 
 
 
