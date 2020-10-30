@@ -148,7 +148,7 @@ public class PrismManager : MonoBehaviour
 
     private Vector3 supportFunction(List<Vector3> minkowskiDifference, Vector3 pointToCalculateSupportAxis)
     {
-        var supportAxis = -1 * pointToCalculateSupportAxis;
+        var supportAxis = Vector3.zero - pointToCalculateSupportAxis;
  
         return minkowskiDifference.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
  
@@ -159,12 +159,15 @@ public class PrismManager : MonoBehaviour
         var simplex = new List<Vector3>();
 
         //Create simplex triangle by first picking an arbitrary value, picking the second point using the support fxn, and picking the third point by using the support fxn w/ the orthogonal vector of simplex
-        Vector3 direction;
+
+        //Assign direction to an arbitrary direction
+        Vector3 direction = Vector3.zero;
         while (true){
             switch (simplex.Count)
             {
                 case 0:
                     simplex.Add(minkowskiDifference[0]);
+                    direction = Vector3.zero - simplex[0];
                     break;
                 case 1:
                     simplex.Add(supportFunction(minkowskiDifference, simplex[0]));
@@ -173,7 +176,11 @@ public class PrismManager : MonoBehaviour
                     var firstPointToSecondPoint = simplex[1] - simplex[0];
                     var firstPointToOrigin = Vector3.zero - simplex[0];
 
-                    simplex.Add(supportFunction(minkowskiDifference, tripleCrossProduct(firstPointToSecondPoint, firstPointToOrigin, firstPointToSecondPoint)));
+                    var perpLine = tripleCrossProduct(firstPointToSecondPoint, firstPointToOrigin, firstPointToSecondPoint);
+
+                    simplex.Add(supportFunction(minkowskiDifference, perpLine));
+
+                    direction = perpLine;
                     break;
                 case 3:
                     var v1 = simplex[0] - simplex[2];
@@ -185,10 +192,12 @@ public class PrismManager : MonoBehaviour
 
                     if (Vector3.Dot(v1Perp, toOrigin) > 0)
                     {
+                        direction = v1Perp;
                         simplex.Remove(simplex[1]);
                     }
                     else if (Vector3.Dot(v2Perp, toOrigin) > 0)
                     {
+                        direction = v2Perp;
                         simplex.Remove(simplex[0]);
                     }
                     else
@@ -197,6 +206,7 @@ public class PrismManager : MonoBehaviour
                     }
                     break;
             }
+
             if (Vector3.Dot(Vector3.zero - simplex[simplex.Count - 1], direction) < 0)
             {
                 break;
@@ -231,7 +241,7 @@ public class PrismManager : MonoBehaviour
 
         collision.penetrationDepthVectorAB = Vector3.zero;
 
-        return false;
+        return isCollision;
     }
 
     #endregion
