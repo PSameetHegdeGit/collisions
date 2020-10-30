@@ -146,10 +146,10 @@ public class PrismManager : MonoBehaviour
     }
 
 
-    private Vector3 supportFunction(List<Vector3> minkowskiDifference, Vector3 supportAxis)
-    { 
- 
-        return minkowskiDifference.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
+    private Vector3 supportFunction(List<Vector3> minkowskiDifference, Vector3 supportAxis, List<Vector3> simplex)
+    {
+        var filtermink = minkowskiDifference.Except(simplex);
+        return filtermink.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis)? a : b);
  
     }
 
@@ -165,7 +165,7 @@ public class PrismManager : MonoBehaviour
             switch (simplex.Count)
             {
                 case 0:
-                    simplex.Add(supportFunction(minkowskiDifference, Vector3.forward));
+                    simplex.Add(supportFunction(minkowskiDifference, Vector3.forward, simplex));
                     direction = Vector3.forward;
 
                     if (Vector3.Dot(simplex[simplex.Count - 1] - Vector3.zero, direction) <= 0)
@@ -175,7 +175,7 @@ public class PrismManager : MonoBehaviour
                 case 1:
                     direction *= -1;
 
-                    simplex.Add(supportFunction(minkowskiDifference, direction));
+                    simplex.Add(supportFunction(minkowskiDifference, direction, simplex));
 
                     if (Vector3.Dot(simplex[simplex.Count - 1] - Vector3.zero, direction) <= 0)
                         return false;
@@ -187,7 +187,7 @@ public class PrismManager : MonoBehaviour
 
                     var perpLine = tripleCrossProduct(firstPointToSecondPoint, firstPointToOrigin, firstPointToSecondPoint);
 
-                    simplex.Add(supportFunction(minkowskiDifference, perpLine));
+                    simplex.Add(supportFunction(minkowskiDifference, perpLine, simplex));
 
                     Debug.DrawLine(simplex[0], simplex[1], Color.white);
 
