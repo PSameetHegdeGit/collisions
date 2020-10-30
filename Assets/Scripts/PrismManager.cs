@@ -304,7 +304,7 @@ public class PrismManager : MonoBehaviour
                     }
                     else
                     {
-                        bool testingEPA = EPA(simplex, minkowskiDifference, prismA, prismB);
+                        EPA(simplex, minkowskiDifference, prismA, prismB);
                         return true;
                     }
                     break;
@@ -357,7 +357,7 @@ public class PrismManager : MonoBehaviour
         return -1;
     }
 
-    private bool EPA(List<Vector3> simplex, List<Vector3> minkowskiDifference, Prism prismA, Prism prismB)
+    private void EPA(List<Vector3> simplex, List<Vector3> minkowskiDifference, Prism prismA, Prism prismB)
     {
         print(simplex.Count);
         if (PointToLine(simplex[0], simplex[1], simplex[2]) > 0)
@@ -432,7 +432,6 @@ public class PrismManager : MonoBehaviour
         Debug.DrawLine(prismA.transform.position, prismA.transform.position - tan, Color.red, UPDATE_RATE);
         Debug.DrawLine(prismB.transform.position, prismB.transform.position + tan, Color.red, UPDATE_RATE);
 
-        return false;
     }
 
 
