@@ -235,10 +235,11 @@ public class PrismManager : MonoBehaviour
 
     private Vector3 tripleCrossProduct(Vector3 a, Vector3 b, Vector3 c)
     {
-        var axb = Vector3.Cross(a, b);
-        var cxprior = Vector3.Cross(c, axb);
 
-        return cxprior;
+        var axb = Vector3.Cross(a, b);
+        var priorxc = Vector3.Cross(axb, c);
+
+        return priorxc;
     }
 
     private List<Vector3> calculateMinkowskiDifference(Prism prismA, Prism prismB)
@@ -257,10 +258,9 @@ public class PrismManager : MonoBehaviour
     private Vector3 supportFunction(List<Vector3> minkowskiDifference, Vector3 supportAxis, List<Vector3> simplex)
     {
         print(minkowskiDifference.Count);
-        //var filtermink = minkowskiDifference.Except(simplex).ToList();
-        //print(simplex.Count);
-        //return filtermink.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis)? a : b);
-        return minkowskiDifference.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
+        var filtermink = minkowskiDifference.Except(simplex).ToList();
+        print(simplex.Count);
+        return filtermink.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
 
     }
 
@@ -276,20 +276,10 @@ public class PrismManager : MonoBehaviour
             switch (simplex.Count)
             {
                 case 0:
-                    simplex.Add(supportFunction(minkowskiDifference, Vector3.forward, simplex));
                     direction = Vector3.forward;
-
-                    if (Vector3.Dot(simplex[simplex.Count - 1] - Vector3.zero, direction) <= 0)
-                        return false;
-
                     break;
                 case 1:
                     direction *= -1;
-
-                    simplex.Add(supportFunction(minkowskiDifference, direction, simplex));
-
-                    if (Vector3.Dot(simplex[simplex.Count - 1] - Vector3.zero, direction) <= 0)
-                        return false;
 
                     break;
                 case 2:
@@ -298,35 +288,26 @@ public class PrismManager : MonoBehaviour
 
                     var perpLine = tripleCrossProduct(firstPointToSecondPoint, firstPointToOrigin, firstPointToSecondPoint);
 
-                    simplex.Add(supportFunction(minkowskiDifference, perpLine, simplex));
-
-                    Debug.DrawLine(simplex[0], simplex[1], Color.white);
-
                     direction = perpLine;
-
-                    Debug.DrawLine(simplex[0], simplex[1], Color.white);
-                    Debug.DrawLine(simplex[0], simplex[2], Color.white);
-                    Debug.DrawLine(simplex[1], simplex[2], Color.white);
-
-                    if (Vector3.Dot(simplex[simplex.Count - 1] - Vector3.zero, direction) <= 0)
-                        return false;
 
                     break;
                 case 3:
-                    var v1 = simplex[0] - simplex[2];
-                    var v2 = simplex[1] - simplex[2];
-                    var toOrigin = -1 * simplex[2];
+                    var v1 = simplex[0].normalized - simplex[2].normalized;
+                    var v2 = simplex[1].normalized - simplex[2].normalized;
+                    var toOrigin = -1 * simplex[2].normalized;
 
                     var v1Perp = tripleCrossProduct(v2, v1, v1);
                     var v2Perp = tripleCrossProduct(v1, v2, v2);
 
                     if (Vector3.Dot(v1Perp, toOrigin) > 0)
                     {
-                        simplex.Remove(simplex[1]);
+                        simplex.RemoveAt(1);
+                        direction = v1Perp;
                     }
                     else if (Vector3.Dot(v2Perp, toOrigin) > 0)
                     {
-                        simplex.Remove(simplex[0]);
+                        simplex.RemoveAt(0);
+                        direction = v2Perp;
                     }
                     else
                     {
@@ -336,8 +317,10 @@ public class PrismManager : MonoBehaviour
                     break;
             }
 
-            
-           
+            simplex.Add(supportFunction(minkowskiDifference, direction, simplex));
+            if (Vector3.Dot(simplex[simplex.Count - 1], direction) < 0)
+                return false;
+
 
         }
 
