@@ -159,38 +159,50 @@ public class PrismManager : MonoBehaviour
         var simplex = new List<Vector3>();
 
         //Create simplex triangle by first picking an arbitrary value, picking the second point using the support fxn, and picking the third point by using the support fxn w/ the orthogonal vector of simplex
-        var firstPoint = minkowskiDifference[0];
-        var secondPoint = supportFunction(minkowskiDifference, firstPoint);
+        Vector3 direction;
+        while (true){
+            switch (simplex.Count)
+            {
+                case 0:
+                    simplex.Add(minkowskiDifference[0]);
+                    break;
+                case 1:
+                    simplex.Add(supportFunction(minkowskiDifference, simplex[0]));
+                    break;
+                case 2:
+                    var firstPointToSecondPoint = simplex[1] - simplex[0];
+                    var firstPointToOrigin = Vector3.zero - simplex[0];
 
-        var firstPointToSecondPoint = firstPoint - secondPoint;
-        var firstPointToOrigin = -1 * firstPoint;
+                    simplex.Add(supportFunction(minkowskiDifference, tripleCrossProduct(firstPointToSecondPoint, firstPointToOrigin, firstPointToSecondPoint)));
+                    break;
+                case 3:
+                    var v1 = simplex[0] - simplex[2];
+                    var v2 = simplex[0] - simplex[2];
+                    var toOrigin = Vector3.zero - simplex[2];
 
-        var thirdPoint = supportFunction(minkowskiDifference, tripleCrossProduct(firstPointToSecondPoint, firstPointToOrigin, firstPointToSecondPoint));
+                    var v1Perp = tripleCrossProduct(v2, v1, v1);
+                    var v2Perp = tripleCrossProduct(v1, v2, v2);
 
-        simplex.Add(firstPoint);
-        simplex.Add(secondPoint);
-        simplex.Add(thirdPoint);
+                    if (Vector3.Dot(v1Perp, toOrigin) > 0)
+                    {
+                        simplex.Remove(simplex[1]);
+                    }
+                    else if (Vector3.Dot(v2Perp, toOrigin) > 0)
+                    {
+                        simplex.Remove(simplex[0]);
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                    break;
+            }
+            if (Vector3.Dot(Vector3.zero - simplex[simplex.Count - 1], direction) < 0)
+            {
+                break;
+            }
 
 
-        //Determine if simplex contains origin
-        var v1 = firstPoint - thirdPoint;
-        var v2 = secondPoint - thirdPoint;
-        var toOrigin = thirdPoint * -1;
-
-        var v1Perp = tripleCrossProduct(v2, v1, v1);
-        var v2Perp = tripleCrossProduct(v1, v2, v2);
-
-        if(Vector3.Dot(v1Perp, toOrigin) > 0)
-        {
-            simplex.Remove(firstPoint);
-        }
-        else if (Vector3.Dot(v2Perp, toOrigin) > 0)
-        {
-            simplex.Remove(secondPoint);
-        }
-        else
-        {
-            return true;
         }
 
         return false;
