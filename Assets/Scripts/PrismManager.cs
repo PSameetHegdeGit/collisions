@@ -127,7 +127,6 @@ public class PrismManager : MonoBehaviour
             masterlist.Add(tupleMin);
             masterlist.Add(tupleMax);
 
-            //Sorting masterlist
 
         }
         List<Tuple<Prism, float, string>> orderedlist = masterlist.OrderBy(term => term.Item2).ToList();
@@ -155,13 +154,11 @@ public class PrismManager : MonoBehaviour
             }
             else if (term.Item3.Equals("min"))
             {
-                print(sweeplist.Count);
                 foreach (var sweeplistterm in sweeplist)
                 {
                     var checkPrisms = new PrismCollision();
                     checkPrisms.a = term.Item1;
                     checkPrisms.b = sweeplistterm.Item1;
-                    print("minimum");
                     yield return checkPrisms;
                 }
                 sweeplist.Add(term);
@@ -211,13 +208,11 @@ public class PrismManager : MonoBehaviour
             }
             else if (term.Item3.Equals("min"))
             {
-                print(sweeplist.Count);
                 foreach (var sweeplistterm in sweeplist)
                 {
                     var checkPrisms = new PrismCollision();
                     checkPrisms.a = term.Item1;
                     checkPrisms.b = sweeplistterm.Item1;
-                    print("minimum");
                     yield return checkPrisms;
                 }
                 sweeplist.Add(term);
@@ -257,9 +252,7 @@ public class PrismManager : MonoBehaviour
 
     private Vector3 supportFunction(List<Vector3> minkowskiDifference, Vector3 supportAxis, List<Vector3> simplex)
     {
-        print(minkowskiDifference.Count);
         var filtermink = minkowskiDifference.Except(simplex).ToList();
-        print(simplex.Count);
         return filtermink.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
 
     }
