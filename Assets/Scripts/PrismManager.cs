@@ -384,7 +384,7 @@ public class PrismManager : MonoBehaviour
             var a = simplex[minIndex];
             var b = simplex[(minIndex + 1) % simplex.Count];
 
-            print(simplex.Count);
+            
             Debug.DrawLine(a, b, Color.cyan, UPDATE_RATE);
 
 
@@ -392,7 +392,7 @@ public class PrismManager : MonoBehaviour
             var tangent = Vector3.Cross(dir, Vector3.up);
             var orientation = -Mathf.Sign(Vector3.Dot(tangent, -simplex[minIndex]));
             var supportAxis = tangent * orientation;
-            var supportPoint = minkowskiDifference.Aggregate((c, d) => Vector3.Dot(c, supportAxis) > Vector3.Dot(b, supportAxis) ? c : d);
+            var supportPoint = minkowskiDifference.Aggregate((c, d) => Vector3.Dot(c, supportAxis) > Vector3.Dot(d, supportAxis) ? c : d);
 
             if (simplex.Contains(supportPoint))
             {
@@ -422,10 +422,9 @@ public class PrismManager : MonoBehaviour
 
         for (int s = 0; s < simplex.Count; s++)
         {
-            print(simplex.Count);
             Debug.DrawLine((simplex[s]), simplex[(s + 1) % simplex.Count], Color.yellow, UPDATE_RATE);
         }
-        print(simplex.Count);
+        
         Debug.DrawLine(Vector3.zero, (simplex[minIndex] + simplex[(minIndex + 1) % simplex.Count]) / 2, Color.white, UPDATE_RATE);
 
         var tan = PointToLineTangent(Vector3.zero, simplex[minIndex], simplex[(minIndex + 1) % simplex.Count]);
