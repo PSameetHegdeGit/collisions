@@ -181,6 +181,11 @@ public class PrismManager : MonoBehaviour
                     simplex.Add(supportFunction(minkowskiDifference, perpLine));
 
                     direction = perpLine;
+
+                    Debug.DrawLine(simplex[0], simplex[1], Color.white);
+                    Debug.DrawLine(simplex[0], simplex[2], Color.white);
+                    Debug.DrawLine(simplex[1], simplex[2], Color.white);
+
                     break;
                 case 3:
                     var v1 = simplex[0] - simplex[2];
