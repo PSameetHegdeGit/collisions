@@ -359,7 +359,6 @@ public class PrismManager : MonoBehaviour
 
     private void EPA(List<Vector3> simplex, List<Vector3> minkowskiDifference, Prism prismA, Prism prismB)
     {
-        print(simplex.Count);
         if (PointToLine(simplex[0], simplex[1], simplex[2]) > 0)
         {
             var temp = simplex[0];
