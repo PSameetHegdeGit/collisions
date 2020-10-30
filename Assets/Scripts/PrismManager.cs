@@ -1,8 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
+using Object = System.Object;
+using Random = UnityEngine.Random;
 public class PrismManager : MonoBehaviour
 {
     public int prismCount = 10;
@@ -109,15 +111,121 @@ public class PrismManager : MonoBehaviour
 
     private IEnumerable<PrismCollision> PotentialCollisions()
     {
-        for (int i = 0; i < prisms.Count; i++) {
-            for (int j = i + 1; j < prisms.Count; j++) {
-                var checkPrisms = new PrismCollision();
-                checkPrisms.a = prisms[i];
-                checkPrisms.b = prisms[j];
 
-                yield return checkPrisms;
+
+        var masterlist = new List<Tuple<Prism, float, string>>();
+
+        #region Check on x axis
+        foreach (Prism shape in prisms)
+        {
+            var minimum = shape.points.Aggregate<Vector3>((a, b) => a.x < b.x ? a : b).x;
+            var maximum = shape.points.Aggregate<Vector3>((a, b) => a.x > b.x ? a : b).x;
+
+            var tupleMin = Tuple.Create<Prism, float, string>(shape, minimum, "min");
+            var tupleMax = Tuple.Create<Prism, float, string>(shape, maximum, "max");
+
+            masterlist.Add(tupleMin);
+            masterlist.Add(tupleMax);
+
+            //Sorting masterlist
+
+        }
+        List<Tuple<Prism, float, string>> orderedlist = masterlist.OrderBy(term => term.Item2).ToList();
+
+        var sweeplist = new List<Tuple<Prism, float, string>>();
+
+
+        sweeplist.Add(orderedlist[0]);
+
+
+        for (int i = 1; i < orderedlist.Count; i++)
+        {
+            var term = orderedlist[i];
+            if (term.Item3.Equals("max"))
+            {
+                Object itemToRemove = null;
+                foreach (var sweeplistterm in sweeplist)
+                {
+                    if (sweeplistterm.Item1 == term.Item1)
+                    {
+                        itemToRemove = sweeplistterm;
+                    }
+                }
+                sweeplist.Remove((Tuple<Prism, float, string>)itemToRemove);
+            }
+            else if (term.Item3.Equals("min"))
+            {
+                print(sweeplist.Count);
+                foreach (var sweeplistterm in sweeplist)
+                {
+                    var checkPrisms = new PrismCollision();
+                    checkPrisms.a = term.Item1;
+                    checkPrisms.b = sweeplistterm.Item1;
+                    print("minimum");
+                    yield return checkPrisms;
+                }
+                sweeplist.Add(term);
             }
         }
+
+        //Check on Z axis
+        masterlist.Clear();
+        #endregion
+
+        #region Check on z axis
+        foreach (Prism shape in prisms)
+        {
+            var minimum = shape.points.Aggregate<Vector3>((a, b) => a.z < b.z ? a : b).z;
+            var maximum = shape.points.Aggregate<Vector3>((a, b) => a.z > b.z ? a : b).z;
+
+            var tupleMin = Tuple.Create<Prism, float, string>(shape, minimum, "min");
+            var tupleMax = Tuple.Create<Prism, float, string>(shape, maximum, "max");
+
+            masterlist.Add(tupleMin);
+            masterlist.Add(tupleMax);
+
+
+        }
+        orderedlist = masterlist.OrderBy(term => term.Item2).ToList();
+
+        sweeplist = new List<Tuple<Prism, float, string>>();
+
+
+        sweeplist.Add(orderedlist[0]);
+
+
+        for (int i = 1; i < orderedlist.Count; i++)
+        {
+            var term = orderedlist[i];
+            if (term.Item3.Equals("max"))
+            {
+                Object itemToRemove = null;
+                foreach (var sweeplistterm in sweeplist)
+                {
+                    if (sweeplistterm.Item1 == term.Item1)
+                    {
+                        itemToRemove = sweeplistterm;
+                    }
+                }
+                sweeplist.Remove((Tuple<Prism, float, string>)itemToRemove);
+            }
+            else if (term.Item3.Equals("min"))
+            {
+                print(sweeplist.Count);
+                foreach (var sweeplistterm in sweeplist)
+                {
+                    var checkPrisms = new PrismCollision();
+                    checkPrisms.a = term.Item1;
+                    checkPrisms.b = sweeplistterm.Item1;
+                    print("minimum");
+                    yield return checkPrisms;
+                }
+                sweeplist.Add(term);
+            }
+        }
+        #endregion
+
+
 
         yield break;
     }
@@ -148,9 +256,12 @@ public class PrismManager : MonoBehaviour
 
     private Vector3 supportFunction(List<Vector3> minkowskiDifference, Vector3 supportAxis, List<Vector3> simplex)
     {
-        var filtermink = minkowskiDifference.Except(simplex);
-        return filtermink.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis)? a : b);
- 
+        print(minkowskiDifference.Count);
+        //var filtermink = minkowskiDifference.Except(simplex).ToList();
+        //print(simplex.Count);
+        //return filtermink.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis)? a : b);
+        return minkowskiDifference.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
+
     }
 
     private bool GJK(List<Vector3> minkowskiDifference)
@@ -211,16 +322,15 @@ public class PrismManager : MonoBehaviour
 
                     if (Vector3.Dot(v1Perp, toOrigin) > 0)
                     {
-                        //direction = v1Perp;
                         simplex.Remove(simplex[1]);
                     }
                     else if (Vector3.Dot(v2Perp, toOrigin) > 0)
                     {
-                        //direction = v2Perp;
                         simplex.Remove(simplex[0]);
                     }
                     else
                     {
+            
                         return true;
                     }
                     break;
