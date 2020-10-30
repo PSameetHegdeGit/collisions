@@ -146,9 +146,8 @@ public class PrismManager : MonoBehaviour
     }
 
 
-    private Vector3 supportFunction(List<Vector3> minkowskiDifference, Vector3 pointToCalculateSupportAxis)
-    {
-        var supportAxis = Vector3.zero - pointToCalculateSupportAxis;
+    private Vector3 supportFunction(List<Vector3> minkowskiDifference, Vector3 supportAxis)
+    { 
  
         return minkowskiDifference.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
  
@@ -166,19 +165,31 @@ public class PrismManager : MonoBehaviour
             switch (simplex.Count)
             {
                 case 0:
-                    simplex.Add(minkowskiDifference[0]);
-                    direction = Vector3.zero - simplex[0];
+                    simplex.Add(supportFunction(minkowskiDifference, Vector3.forward));
+                    direction = Vector3.forward;
+
+                    if (Vector3.Dot(simplex[simplex.Count - 1] - Vector3.zero, direction) <= 0)
+                        return false;
+
                     break;
                 case 1:
-                    simplex.Add(supportFunction(minkowskiDifference, simplex[0]));
+                    direction *= -1;
+
+                    simplex.Add(supportFunction(minkowskiDifference, direction));
+
+                    if (Vector3.Dot(simplex[simplex.Count - 1] - Vector3.zero, direction) <= 0)
+                        return false;
+
                     break;
                 case 2:
                     var firstPointToSecondPoint = simplex[1] - simplex[0];
-                    var firstPointToOrigin = Vector3.zero - simplex[0];
+                    var firstPointToOrigin = -1 * simplex[0];
 
                     var perpLine = tripleCrossProduct(firstPointToSecondPoint, firstPointToOrigin, firstPointToSecondPoint);
 
                     simplex.Add(supportFunction(minkowskiDifference, perpLine));
+
+                    Debug.DrawLine(simplex[0], simplex[1], Color.white);
 
                     direction = perpLine;
 
@@ -186,23 +197,26 @@ public class PrismManager : MonoBehaviour
                     Debug.DrawLine(simplex[0], simplex[2], Color.white);
                     Debug.DrawLine(simplex[1], simplex[2], Color.white);
 
+                    if (Vector3.Dot(simplex[simplex.Count - 1] - Vector3.zero, direction) <= 0)
+                        return false;
+
                     break;
                 case 3:
                     var v1 = simplex[0] - simplex[2];
-                    var v2 = simplex[0] - simplex[2];
-                    var toOrigin = Vector3.zero - simplex[2];
+                    var v2 = simplex[1] - simplex[2];
+                    var toOrigin = -1 * simplex[2];
 
                     var v1Perp = tripleCrossProduct(v2, v1, v1);
                     var v2Perp = tripleCrossProduct(v1, v2, v2);
 
                     if (Vector3.Dot(v1Perp, toOrigin) > 0)
                     {
-                        direction = v1Perp;
+                        //direction = v1Perp;
                         simplex.Remove(simplex[1]);
                     }
                     else if (Vector3.Dot(v2Perp, toOrigin) > 0)
                     {
-                        direction = v2Perp;
+                        //direction = v2Perp;
                         simplex.Remove(simplex[0]);
                     }
                     else
@@ -212,15 +226,11 @@ public class PrismManager : MonoBehaviour
                     break;
             }
 
-            if (Vector3.Dot(Vector3.zero - simplex[simplex.Count - 1], direction) < 0)
-            {
-                break;
-            }
-
+            
+           
 
         }
 
-        return false;
             
         
     }
