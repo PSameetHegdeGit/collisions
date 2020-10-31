@@ -257,7 +257,7 @@ public class PrismManager : MonoBehaviour
 
     }
 
-    private bool GJK(List<Vector3> minkowskiDifference, Prism prismA, Prism prismB)
+    private bool GJK(List<Vector3> minkowskiDifference, PrismCollision collision)
     {
         var simplex = new List<Vector3>();
 
@@ -304,7 +304,7 @@ public class PrismManager : MonoBehaviour
                     }
                     else
                     {
-                        EPA(simplex, minkowskiDifference, prismA, prismB);
+                        collision.penetrationDepthVectorAB = EPA(simplex, minkowskiDifference);
                         return true;
                     }
                     break;
@@ -352,12 +352,13 @@ public class PrismManager : MonoBehaviour
             {
                 return index;
             }
+            index++;
         }
 
         return -1;
     }
 
-    private void EPA(List<Vector3> simplex, List<Vector3> minkowskiDifference, Prism prismA, Prism prismB)
+    private Vector3 EPA(List<Vector3> simplex, List<Vector3> minkowskiDifference)
     {
         if (PointToLine(simplex[0], simplex[1], simplex[2]) > 0)
         {
@@ -377,21 +378,21 @@ public class PrismManager : MonoBehaviour
         var minIndex = MinIndex(distToSimplexSegments);
         var minDist = distToSimplexSegments.Min();
 
-        for (int i = 0; ; i++)
+        while(true)
         {
+            if (true)
+            {
+                var a = simplex[minIndex];
+                var b = simplex[(minIndex + 1) % simplex.Count];
+                Debug.DrawLine(a, b, Color.cyan, UPDATE_RATE);
+            }
 
-            var a = simplex[minIndex];
-            var b = simplex[(minIndex + 1) % simplex.Count];
 
-            
-            Debug.DrawLine(a, b, Color.cyan, UPDATE_RATE);
-
-
-            var dir = b - a;
+            var dir = simplex[(minIndex + 1) % simplex.Count] - simplex[minIndex];
             var tangent = Vector3.Cross(dir, Vector3.up);
-            var orientation = -Mathf.Sign(Vector3.Dot(tangent, -simplex[minIndex]));
-            var supportAxis = tangent * orientation;
-            var supportPoint = minkowskiDifference.Aggregate((c, d) => Vector3.Dot(c, supportAxis) > Vector3.Dot(d, supportAxis) ? c : d);
+            //var orientation = -Mathf.Sign(Vector3.Dot(tangent, -simplex[minIndex]));
+            var supportAxis = tangent;
+            var supportPoint = minkowskiDifference.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
 
             if (simplex.Contains(supportPoint))
             {
@@ -407,8 +408,8 @@ public class PrismManager : MonoBehaviour
 
                 for (int s = minIndex; s <= minIndex + 1; s++)
                 {
-                    var e = simplex[s % simplex.Count];
-                    var f = simplex[(s + 1) % simplex.Count];
+                    var a = simplex[s % simplex.Count];
+                    var b = simplex[(s + 1) % simplex.Count];
 
                     distToSimplexSegments[s % simplex.Count] = Mathf.Abs(PointToLine(Vector3.zero, a, b));
                 }
@@ -421,15 +422,16 @@ public class PrismManager : MonoBehaviour
 
         for (int s = 0; s < simplex.Count; s++)
         {
-            Debug.DrawLine((simplex[s]), simplex[(s + 1) % simplex.Count], Color.yellow, UPDATE_RATE);
+            //Debug.DrawLine((simplex[s]), simplex[(s + 1) % simplex.Count], Color.magenta, UPDATE_RATE);
         }
         
         Debug.DrawLine(Vector3.zero, (simplex[minIndex] + simplex[(minIndex + 1) % simplex.Count]) / 2, Color.white, UPDATE_RATE);
 
         var tan = PointToLineTangent(Vector3.zero, simplex[minIndex], simplex[(minIndex + 1) % simplex.Count]);
-        Debug.DrawLine(prismA.transform.position, prismA.transform.position - tan, Color.red, UPDATE_RATE);
-        Debug.DrawLine(prismB.transform.position, prismB.transform.position + tan, Color.red, UPDATE_RATE);
+        //Debug.DrawLine(prismA.transform.position, prismA.transform.position - tan, Color.red, UPDATE_RATE);
+        //Debug.DrawLine(prismB.transform.position, prismB.transform.position + tan, Color.red, UPDATE_RATE);
 
+        return (simplex[minIndex] + simplex[(minIndex + 1) % simplex.Count]) / 2;
     }
 
 
@@ -449,9 +451,9 @@ public class PrismManager : MonoBehaviour
         var minkowskiDifference = calculateMinkowskiDifference(prismA, prismB);
 
         //Run GJK Algorithm
-        var isCollision = GJK(minkowskiDifference, prismA, prismB);
+        var isCollision = GJK(minkowskiDifference, collision);
 
-        collision.penetrationDepthVectorAB = Vector3.zero;
+        //collision.penetrationDepthVectorAB = Vector3.zero;
 
         return isCollision;
     }
