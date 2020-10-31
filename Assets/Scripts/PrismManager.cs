@@ -356,7 +356,6 @@ public class PrismManager : MonoBehaviour
         }
 
         var polytope = simplex;
-        
         var polytopeEdgeDistances = new List<float>();
 
         for (int i = 0; i < polytope.Count; i++)
@@ -367,21 +366,20 @@ public class PrismManager : MonoBehaviour
         }
 
         var minIndex = MinIndex(polytopeEdgeDistances);
-        
 
         while (true)
         {
             var dir = polytope[(minIndex + 1) % polytope.Count] - polytope[minIndex];
             var supportAxis = Vector3.Cross(dir, Vector3.up);
             var supportPoint = minkowskiDifference.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
-
+           
             if (polytope.Contains(supportPoint))
             {
                 break;
             }
             else
             {
-                var ind = (minIndex + 1) % polytope.Count;
+                int ind = (minIndex + 1) % polytope.Count;
                 polytope.Insert(ind, supportPoint);
                 polytopeEdgeDistances.Insert(ind, float.MaxValue);
 
@@ -394,20 +392,13 @@ public class PrismManager : MonoBehaviour
 
                     polytopeEdgeDistances[s % polytope.Count] = Mathf.Abs(PointToLine(Vector3.zero, a, b));
                 }
-
                 minIndex = MinIndex(polytopeEdgeDistances);
-                
             }
 
         }
 
-        for (int s = 0; s < polytope.Count; s++)
-        {
-            //Debug.DrawLine((simplex[s]), simplex[(s + 1) % simplex.Count], Color.magenta, UPDATE_RATE);
-        }
 
-        Debug.DrawLine(Vector3.zero, (polytope[minIndex] + polytope[(minIndex + 1) % polytope.Count]) / 2, Color.white, UPDATE_RATE);
-        
+        print((polytope[minIndex] + polytope[(minIndex + 1) % polytope.Count]) / 2);
 
         return (polytope[minIndex] + polytope[(minIndex + 1) % polytope.Count]) / 2;
     }
