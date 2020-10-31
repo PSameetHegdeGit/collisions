@@ -18,7 +18,7 @@ public class PrismManager : MonoBehaviour
     private List<Prism> prisms = new List<Prism>();
     private List<GameObject> prismObjects = new List<GameObject>();
     private GameObject prismParent;
-    private Dictionary<Prism,bool> prismColliding = new Dictionary<Prism, bool>();
+    private Dictionary<Prism, bool> prismColliding = new Dictionary<Prism, bool>();
 
     private const float UPDATE_RATE = 0.5f;
 
@@ -61,7 +61,7 @@ public class PrismManager : MonoBehaviour
 
         StartCoroutine(Run());
     }
-    
+
     void Update()
     {
         #region Visualization
@@ -265,7 +265,8 @@ public class PrismManager : MonoBehaviour
 
         //Assign direction to an arbitrary direction
         Vector3 direction = Vector3.zero;
-        while (true){
+        while (true)
+        {
             switch (simplex.Count)
             {
                 case 0:
@@ -317,31 +318,18 @@ public class PrismManager : MonoBehaviour
 
         }
 
-            
-        
+
+
     }
 
     private float PointToLine(Vector3 p, Vector3 a, Vector3 b)
     {
         var newVec = p - a;
-        var dir = b - a;
-        var tangent = Vector3.Cross(dir, Vector3.up).normalized;
+        var tangent = Vector3.Cross(b-a, Vector3.up).normalized;
 
-        var result = Vector3.Dot(newVec, tangent) / (newVec.magnitude) * newVec.magnitude;
-
-        return result;
+        return Vector3.Dot(newVec, tangent); ;
     }
 
-    private Vector3 PointToLineTangent(Vector3 p, Vector3 a, Vector3 b)
-    {
-        var newVec = p - a;
-        var dir = b - a;
-        var tangent = Vector3.Cross(dir, Vector3.up).normalized;
-
-        var result = Vector3.Dot(newVec, tangent) / (newVec.magnitude) * newVec.magnitude;
-
-        return tangent * result;
-    }
 
     private int MinIndex(List<float> list)
     {
@@ -367,71 +355,61 @@ public class PrismManager : MonoBehaviour
             simplex[1] = temp;
         }
 
-        var distToSimplexSegments = new List<float>();
-        for (int s = 0; s < simplex.Count; s++)
+        var polytope = simplex;
+        
+        var polytopeEdgeDistances = new List<float>();
+
+        for (int i = 0; i < polytope.Count; i++)
         {
-            var a = simplex[s];
-            var b = simplex[(s + 1) % simplex.Count];
-            distToSimplexSegments.Add(Mathf.Abs(PointToLine(Vector3.zero, a, b)));
+            var a = polytope[i];
+            var b = polytope[(i + 1) % polytope.Count];
+            polytopeEdgeDistances.Add(Mathf.Abs(PointToLine(Vector3.zero, a, b)));
         }
 
-        var minIndex = MinIndex(distToSimplexSegments);
-        var minDist = distToSimplexSegments.Min();
+        var minIndex = MinIndex(polytopeEdgeDistances);
+        
 
-        while(true)
+        while (true)
         {
-            if (true)
-            {
-                var a = simplex[minIndex];
-                var b = simplex[(minIndex + 1) % simplex.Count];
-                Debug.DrawLine(a, b, Color.cyan, UPDATE_RATE);
-            }
-
-
-            var dir = simplex[(minIndex + 1) % simplex.Count] - simplex[minIndex];
-            var tangent = Vector3.Cross(dir, Vector3.up);
-            //var orientation = -Mathf.Sign(Vector3.Dot(tangent, -simplex[minIndex]));
-            var supportAxis = tangent;
+            var dir = polytope[(minIndex + 1) % polytope.Count] - polytope[minIndex];
+            var supportAxis = Vector3.Cross(dir, Vector3.up);
             var supportPoint = minkowskiDifference.Aggregate((a, b) => Vector3.Dot(a, supportAxis) > Vector3.Dot(b, supportAxis) ? a : b);
 
-            if (simplex.Contains(supportPoint))
+            if (polytope.Contains(supportPoint))
             {
                 break;
             }
             else
             {
-                var ind = (minIndex + 1) % simplex.Count;
-                simplex.Insert(ind, supportPoint);
-                distToSimplexSegments.Insert(ind, float.MaxValue);
+                var ind = (minIndex + 1) % polytope.Count;
+                polytope.Insert(ind, supportPoint);
+                polytopeEdgeDistances.Insert(ind, float.MaxValue);
 
-                minIndex = MinIndex(distToSimplexSegments);
+                minIndex = MinIndex(polytopeEdgeDistances);
 
                 for (int s = minIndex; s <= minIndex + 1; s++)
                 {
-                    var a = simplex[s % simplex.Count];
-                    var b = simplex[(s + 1) % simplex.Count];
+                    var a = polytope[s % polytope.Count];
+                    var b = polytope[(s + 1) % polytope.Count];
 
-                    distToSimplexSegments[s % simplex.Count] = Mathf.Abs(PointToLine(Vector3.zero, a, b));
+                    polytopeEdgeDistances[s % polytope.Count] = Mathf.Abs(PointToLine(Vector3.zero, a, b));
                 }
 
-                minIndex = MinIndex(distToSimplexSegments);
-                minDist = distToSimplexSegments[minIndex];
+                minIndex = MinIndex(polytopeEdgeDistances);
+                
             }
 
         }
 
-        for (int s = 0; s < simplex.Count; s++)
+        for (int s = 0; s < polytope.Count; s++)
         {
             //Debug.DrawLine((simplex[s]), simplex[(s + 1) % simplex.Count], Color.magenta, UPDATE_RATE);
         }
+
+        Debug.DrawLine(Vector3.zero, (polytope[minIndex] + polytope[(minIndex + 1) % polytope.Count]) / 2, Color.white, UPDATE_RATE);
         
-        Debug.DrawLine(Vector3.zero, (simplex[minIndex] + simplex[(minIndex + 1) % simplex.Count]) / 2, Color.white, UPDATE_RATE);
 
-        var tan = PointToLineTangent(Vector3.zero, simplex[minIndex], simplex[(minIndex + 1) % simplex.Count]);
-        //Debug.DrawLine(prismA.transform.position, prismA.transform.position - tan, Color.red, UPDATE_RATE);
-        //Debug.DrawLine(prismB.transform.position, prismB.transform.position + tan, Color.red, UPDATE_RATE);
-
-        return (simplex[minIndex] + simplex[(minIndex + 1) % simplex.Count]) / 2;
+        return (polytope[minIndex] + polytope[(minIndex + 1) % polytope.Count]) / 2;
     }
 
 
@@ -487,7 +465,7 @@ public class PrismManager : MonoBehaviour
 
         Debug.DrawLine(prismObjA.transform.position, prismObjA.transform.position + collision.penetrationDepthVectorAB, Color.cyan, UPDATE_RATE);
     }
-    
+
     #endregion
 
     #region Visualization Functions
@@ -495,7 +473,7 @@ public class PrismManager : MonoBehaviour
     private void DrawPrismRegion()
     {
         var points = new Vector3[] { new Vector3(1, 0, 1), new Vector3(1, 0, -1), new Vector3(-1, 0, -1), new Vector3(-1, 0, 1) }.Select(p => p * prismRegionRadiusXZ).ToArray();
-        
+
         var yMin = -prismRegionRadiusY;
         var yMax = prismRegionRadiusY;
 
@@ -549,12 +527,13 @@ public class PrismManager : MonoBehaviour
         public Vector3 penetrationDepthVectorAB;
     }
 
-    private class Tuple<K,V>
+    private class Tuple<K, V>
     {
         public K Item1;
         public V Item2;
 
-        public Tuple(K k, V v) {
+        public Tuple(K k, V v)
+        {
             Item1 = k;
             Item2 = v;
         }
