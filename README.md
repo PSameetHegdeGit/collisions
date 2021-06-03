@@ -1,4 +1,4 @@
-##Collision Detection of Prisms in Unity with GJK Algorithm and EPA Algorithm
+## Collision Detection of Prisms in Unity with GJK Algorithm and EPA Algorithm
 
 This project randomly generates 2-dimensional prisms on a 2-dimensional space in random locations in Unity. Some of these prisms will be overlapping while others are not overlapping.
 
